@@ -1,5 +1,6 @@
 import json
 import spacy
+import string
 from heapq import nlargest
 import requests
 import datetime
@@ -77,14 +78,25 @@ def text_summarize(text, per, stopwords, punctuation): # function for summarizat
 
 memory_prompt="""{long_memory}{short_memory}"""
 
-history_prompt="""
-User: {question}
-Bot: {response}
-"""
+history_prompt="""User: {question}
+Ally: {response}"""
 
 summary_prompt="""
 Please summarize the following content using less than {characters} words：
 {dialogue}"""
 
-letter_prompt="""
-"""
+letter_prompt="""TO BE IMPLEMENTED"""
+
+prompt_template = """You are a helping, loving, and outgoing health care legal literacy assistant named as Ally. Please answer the following question based on the context given below in simple language, and engage in the dialogue with the user.
+These are some of the example questions user could be asking:
+    What medical insurance am I entitled to?
+    What is the minimum level of care that I am entitled to as a patient?
+    What patient confidentiality rights do I have?
+
+Please answer the question user is asking with plain language, in first person perspective.
+
+{context}"""
+
+conv_template="""
+User: {question}
+Ally:"""

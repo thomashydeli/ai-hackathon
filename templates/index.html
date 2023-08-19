@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Legal Bot</title>
+    <title>ALLY</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -18,7 +18,7 @@
             --message-text-color-user: #FFFFFF;
             --message-text-color-bot: #000000;
             --box-background-color: rgba(255, 255, 255, 0.75); /* 75% opaque */
-            --chat-background-color: rgba(230, 229, 232, 0.9); /* 90% opaque */
+            --chat-background-color: rgba(230, 229, 232, 0.8); /* 90% opaque */
         }
 
         body {
@@ -77,12 +77,12 @@
 
         .chat-headline {
             margin-top: 10px;
-            font-size: 22px;
+            font-size: 50px;
         }
 
         .chat-description {
             margin-top: 1px;
-            font-size: 16px;
+            font-size: 20px;
             text-align: center;
         }
 
@@ -270,8 +270,8 @@
     <div id="container">
         <div id="info">
             <img id="profile-pic" src="{{ url_for('static', filename='profile.png') }}" alt="Profile Image">
-            <h1 class="chat-headline">Legal Bot</h1>
-            <p class="chat-description">Get your health care legal questions answered!</p>
+            <h1 class="chat-headline">ALLY</h1>
+            <p class="chat-description">Augmented Legal Literacy for You</p>
             <a href="mailto:mailistanime@gmail.com" id="email-icon"><i class="fas fa-envelope"></i></a>
         </div>
         <div id="chat">
@@ -298,7 +298,7 @@
             const messagesDiv = document.getElementById('messages');
             const botMessage = document.createElement('div');
             botMessage.className = "bot-message";
-            botMessage.innerHTML = `<strong>Bot:</strong> Hi! I'm your dedicated assistant who can help you with your legal questions related to health care, just ask me anything.`;
+            botMessage.innerHTML = `<strong>Ally:</strong> Hi! I'm Ally, your dedicated health care legal literacy assistant, just ask me any health care legal question that you are curious to learn more about.`;
             messagesDiv.appendChild(botMessage);
         }
 
@@ -334,7 +334,7 @@
             messagesDiv.removeChild(loadingMessage);
             const botMessage = document.createElement('div');
             botMessage.className = "bot-message";
-            botMessage.innerHTML = `<strong>Bot:</strong> ${responseText}`;
+            botMessage.innerHTML = `<strong>Ally:</strong> ${responseText}`;
             messagesDiv.appendChild(botMessage);
             scrollToMessage(messagesDiv, botMessage);
 

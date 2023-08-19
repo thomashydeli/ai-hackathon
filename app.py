@@ -10,8 +10,8 @@ import requests
 import pandas as pd
 from collections import deque
 from datetime import datetime
-from utils import getResponse, text_summarize, memory_prompt
-from utils import history_prompt, summary_prompt
+from utils import getResponse, text_summarize, memory_prompt, prompt_template
+from utils import history_prompt, summary_prompt, conv_template
 from utils import get_vectorstore
 from flask import Flask, request, jsonify, make_response, render_template
 
@@ -20,9 +20,10 @@ from langchain.vectorstores import FAISS
 from langchain.chains import RetrievalQA
 from langchain.llms import OpenAI
 import os
+from langchain.prompts import PromptTemplate
 
 
-N_docs=5
+N_docs=10
 PATTERN = r'\[(.*?)\]\((.*?)\)'
 DB_FAISS_PATH = 'indexer'
 vector_store = get_vectorstore()
@@ -35,19 +36,13 @@ URL_HASH={
     "data\\hipaa.pdf":"[Health Insurance Portability and Accountability Act (HIPAA)](https://www.govinfo.gov/content/pkg/PLAW-104publ191/pdf/PLAW-104publ191.pdf)"
 }
 
-
+print("setting up credentials with OpenAI's GPT")
 # loading secrets locally:
 with open('secrets.json') as f:
     secrets=json.load(f)
 openai.api_key=secrets['openai']
 os.environ["OPENAI_API_KEY"] = secrets['openai']
 model = OpenAI(model_name="gpt-3.5-turbo-16k")
-qa_chain = RetrievalQA.from_chain_type(
-    llm=model, 
-    chain_type="stuff",
-    retriever=vector_store.as_retriever(search_kwargs={'k': N_docs}),
-    return_source_documents = True,
-)
 
 
 # loading stopwords:
@@ -73,14 +68,17 @@ def process_chat_message(message, long_memory, short_memory):
     if len(long_memory) > 0:
         long_mem='\n'.join(long_memory)
         long_mem=text_summarize(long_mem, MAX_TOKEN_LONG_MEMORY / len(long_mem), stopwords, punctuation)
+        long_mem='Summary of previous conversation: '+long_mem
     else:
         long_mem=''
     print(f'long memory: {long_mem}')
     
     if len(short_memory) > 0:
         short_mem=short_memory[0]
-        if len(short_mem) > MAX_TOKEN_SHORT_MEMORY:
-            short_mem=text_summarize(short_mem, MAX_TOKEN_SHORT_MEMORY / len(short_mem), stopwords, punctuation)
+        # if len(short_mem) > MAX_TOKEN_SHORT_MEMORY:
+        #     short_mem=text_summarize(short_mem, MAX_TOKEN_SHORT_MEMORY / len(short_mem), stopwords, punctuation)
+        short_mem='\n'+short_mem
+        short_mem+='\n'
     else:
         short_mem=''
     print(f'short memory: {short_mem}')
@@ -89,9 +87,23 @@ def process_chat_message(message, long_memory, short_memory):
         short_memory=short_mem,
         long_memory=long_mem,
     )
+    print(previous_context)
+
+    print('setting up the prompt')
+    PROMPT = PromptTemplate(
+        template=prompt_template+previous_context+conv_template, input_variables=["context", "question"]
+    )
+    chain_type_kwargs = {"prompt": PROMPT}
+    print('setting up the qa chain')
+    qa_chain = RetrievalQA.from_chain_type(
+        llm=model, 
+        chain_type="stuff",
+        retriever=vector_store.as_retriever(search_kwargs={'k': N_docs}),
+        chain_type_kwargs=chain_type_kwargs,
+        return_source_documents = True,
+    )
 
     # TO-DO: customized implementation of a response letter
-
     print('ready to do qa chain')
     print('retrieving responses from Open AI GPT ...')
     response=qa_chain(

@@ -100,3 +100,13 @@ Please answer the question user is asking with plain language, in first person p
 conv_template="""
 User: {question}
 Ally:"""
+
+
+letter_template="""Context: {context}
+
+Question:{question}
+
+You are a patient, can you generate a response letter based on the context to your health service provider for them to have the claim regarding the question above go through successfully? 
+If you can, please return the letter in Markdown format and in first person perspective, if you can't, just return nothing.
+
+Letter:"""

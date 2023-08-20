@@ -7,12 +7,14 @@ import time
 import json
 import openai
 import requests
+import markdown
+import pdfkit
 import pandas as pd
 from collections import deque
 from datetime import datetime
 from utils import getResponse, text_summarize, memory_prompt, prompt_template
 from utils import history_prompt, summary_prompt, conv_template
-from utils import get_vectorstore
+from utils import get_vectorstore, letter_template
 from flask import Flask, request, jsonify, make_response, render_template
 
 from langchain.embeddings import HuggingFaceEmbeddings
@@ -44,7 +46,6 @@ openai.api_key=secrets['openai']
 os.environ["OPENAI_API_KEY"] = secrets['openai']
 model = OpenAI(model_name="gpt-3.5-turbo-16k")
 
-
 # loading stopwords:
 with open('stopwords','r') as f:
     stopwords=f.read()
@@ -61,9 +62,19 @@ MAX_TOKEN_OTHERS=256
 RETRY=5
 LONG_MEMORY=[]
 SHORT_MEMORY=deque(maxlen=1)
+output_pdf_path = '/Users/daweili/Desktop/hackathon/ai-hackathon/output.pdf'
 
+
+
+def markdown_to_pdf(markdown_string, output_pdf_path):
+    # Convert Markdown to HTML
+    html_output = markdown.markdown(markdown_string)
+    
+    # Convert HTML to PDF
+    pdfkit.from_string(html_output, output_pdf_path)
 
 def process_chat_message(message, long_memory, short_memory):
+    pdf_gen=False
     print('entering message chat')
     if len(long_memory) > 0:
         long_mem='\n'.join(long_memory)
@@ -103,6 +114,31 @@ def process_chat_message(message, long_memory, short_memory):
         return_source_documents = True,
     )
 
+    print('setting up the prompt for letter generation')
+    LETTER_PROMPT = PromptTemplate(
+        template=letter_template, input_variables=["context", "question"]
+    )
+    letter_type_kwargs = {"prompt": LETTER_PROMPT}
+    print('setting up the qa chain for letter generation')
+    letter_chain = RetrievalQA.from_chain_type(
+        llm=model, 
+        chain_type="stuff",
+        retriever=vector_store.as_retriever(search_kwargs={'k': N_docs}),
+        chain_type_kwargs=letter_type_kwargs,
+        return_source_documents = True,
+    )
+    letter_response=letter_chain(
+        {"query":message}
+    )
+    letter_result=letter_response['result']
+    print()
+    print('----')
+    print(f'generated letter: {letter_result}')
+    if len(letter_result) > 0:
+        markdown_to_pdf(letter_result, output_pdf_path)
+        pdf_gen=True
+
+
     # TO-DO: customized implementation of a response letter
     print('ready to do qa chain')
     print('retrieving responses from Open AI GPT ...')
@@ -130,6 +166,10 @@ def process_chat_message(message, long_memory, short_memory):
             text_inside_parentheses, page_no, text_inside_brackets, page_no
         ))
     sources='<br><br>'.join(source_outputs)
+
+    if pdf_gen:
+        _output_pdf_path=f"""file:///{output_pdf_path[1:]}"""
+        result+=f'\n\nBy the way, here is a response letter I generated for you: \n<a href="{_output_pdf_path}">✉️</a>'
 
     return result, sources
 

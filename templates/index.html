@@ -18,7 +18,7 @@
             --message-text-color-user: #FFFFFF;
             --message-text-color-bot: #000000;
             --box-background-color: rgba(255, 255, 255, 0.75); /* 75% opaque */
-            --chat-background-color: rgba(230, 229, 232, 0.8); /* 90% opaque */
+            --chat-background-color: rgba(230, 229, 232, 0.9); /* 90% opaque */
         }
 
         body {
@@ -106,6 +106,7 @@
             overflow-y: auto;
             padding: 0;
             margin-top: 15px;
+            max-height: 2000px; /* adjust based on your preference */
         }
 
         .user-message,
@@ -117,6 +118,9 @@
             display: flex;
             gap: 10px;
             position: relative;
+            word-wrap: break-word;  
+            overflow-wrap: break-word;  /* Modern equivalent of word-wrap, can use both for wider support */
+            white-space: pre-line;      /* Allows for natural breaks in the text while preserving newline characters */
         }
 
         .user-message strong,
@@ -144,6 +148,12 @@
             align-self: flex-start;
             background-color: var(--message-background-color-bot);
             color: var(--message-text-color-bot);
+        }
+
+        .user-message a,
+        .bot-message a {
+            display: inline; /* This makes sure the link stays inline with the text */
+            overflow-wrap: break-word;
         }
 
         #chat-form {
@@ -330,7 +340,8 @@
             });
 
             const data = await response.json();
-            const responseText = data.response.replace(/\n/g, '<br>')
+            /*const responseText = data.response.replace(/\n/g, '<br>')*/
+            const responseText = data.response
             messagesDiv.removeChild(loadingMessage);
             const botMessage = document.createElement('div');
             botMessage.className = "bot-message";

@@ -1,5 +1,7 @@
 langchain
 sentence_transformers
+markdown
+pdfkit
 faiss-cpu
 jieba==0.42.1
 spacy==3.5.2

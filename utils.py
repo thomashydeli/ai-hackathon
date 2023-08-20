@@ -93,7 +93,7 @@ These are some of the example questions user could be asking:
     What is the minimum level of care that I am entitled to as a patient?
     What patient confidentiality rights do I have?
 
-Please answer the question user is asking with plain language, in first person perspective.
+Please answer the question user is asking with plain and natural language, in first person perspective.
 
 {context}"""
 
